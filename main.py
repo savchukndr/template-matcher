@@ -60,38 +60,53 @@ def draw_frames(img, coord):
         cv2.rectangle(res, top_left, bottom_right, color=(0, 0, 255), thickness=5)
     return res
 
+
 def crop_image(img, n):
+    crop_image_folder = "/Users/savchuk/Documents/template-matcher/data/shelf_image/"
     h, w = img.shape
     new_img_h = h // n
     start_h = 0
-    for x in range(n):
+    for x in range(1, n+1):
         crop_img = img[start_h:start_h+new_img_h, 0:w]
-        cv2.imwrite("/Users/savchuk/Documents/template-matcher/data/result/res-%s.jpg" % x, crop_img)
+        cv2.imwrite("/Users/savchuk/Documents/template-matcher/data/shelf_image/shelf_image_%s.jpg" % x, crop_img)
         start_h += new_img_h
+
+    return [os.path.join(crop_image_folder, b)
+            for b in os.listdir(crop_image_folder)
+            if os.path.isfile(os.path.join(crop_image_folder, b))]
+
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 def main():
-    f = "/Users/savchuk/Documents/template-matcher/data/0000.jpg"
-    bu = "/Users/savchuk/Documents/template-matcher/data/soki"
+    enter_image_path = "/Users/savchuk/Documents/template-matcher/data/image/0000.jpg"
+    template_image_folder = "/Users/savchuk/Documents/template-matcher/data/template/"
 
-    templ = [os.path.join(bu, b) for b in os.listdir(bu) if os.path.isfile(os.path.join(bu, b))]
+    # template image
+    templ = [os.path.join(template_image_folder, b) for b in os.listdir(template_image_folder) if os.path.isfile(os.path.join(template_image_folder, b))]
 
-    img = cv2.imread(f, cv2.IMREAD_GRAYSCALE)
+    # image from device
+    enter_img = cv2.imread(enter_image_path, cv2.IMREAD_GRAYSCALE)
 
-    crop_image(img, 2)
+    # shelf count
+    shelf_count = 2
+    crop_image_list = crop_image(enter_img, shelf_count)
 
-    # for t in templ:
-    #     print(t)
-    #     img_tpl = cv2.imread(t, cv2.IMREAD_GRAYSCALE)
-    #     coord = find_templ(img, img_tpl)
-    #     img_res = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-    #     img_res = draw_frames(img_res, coord)
-    #     tn = os.path.splitext(os.path.basename(t))[0]
-    #     cv2.imwrite("/Users/savchuk/Documents/template-matcher/data/result/res-%s.jpg" % tn, img_res)
-    #     for c in coord:
-    #         print(c)
-    #     print(len(coord))
-    #     print("- - - - - - - - - - - - - - -")
+    img_tpl = cv2.imread(templ[0], cv2.IMREAD_GRAYSCALE)
+    for img in crop_image_list:
+        img_gray = cv2.imread(img, cv2.IMREAD_GRAYSCALE)
+        coord = find_templ(img_gray, img_tpl)
+
+        # Match count on the shelf
+        match_count = len(coord)
+        img_res = cv2.cvtColor(img_gray, cv2.COLOR_GRAY2BGR)
+        img_res = draw_frames(img_res, coord)
+        tn = os.path.splitext(os.path.basename(img))[0]
+        cv2.imwrite("/Users/savchuk/Documents/template-matcher/data/result/res-{}-{}.jpg".format(tn, match_count), img_res)
+        for c in coord:
+            print(c)
+        print(len(coord))
+        print("- - - - - - - - - - - - - - -")
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
