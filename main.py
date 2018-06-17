@@ -48,14 +48,17 @@ def draw_frames(img, coord):
 
 
 # Crop enter image into shelfs
-def crop_image(img, n):
+def crop_image(img_path, n):
     crop_image_folder = "/Users/savchuk/Documents/template-matcher/data/shelf_image/"
+    # image from device
+    img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
     h, w = img.shape
     new_img_h = h // n
     start_h = 0
     for x in range(1, n+1):
         crop_img = img[start_h:start_h+new_img_h, 0:w]
-        cv2.imwrite("/Users/savchuk/Documents/template-matcher/data/shelf_image/shelf_image_%s.jpg" % x, crop_img)
+        tn = os.path.splitext(os.path.basename(img_path))[0]
+        cv2.imwrite("/Users/savchuk/Documents/template-matcher/data/shelf_image/s_{}_{}.jpg".format(tn, x), crop_img)
         start_h += new_img_h
 
     return [os.path.join(crop_image_folder, b)
@@ -71,15 +74,17 @@ def main():
     # template image
     templ = [os.path.join(template_image_folder, b) for b in os.listdir(template_image_folder) if os.path.isfile(os.path.join(template_image_folder, b))]
 
-    # image from device
-    enter_img = cv2.imread(enter_image_path, cv2.IMREAD_GRAYSCALE)
+
 
     # shelf count
     shelf_count = 2
-    crop_image_list = crop_image(enter_img, shelf_count)
+    crop_image_list = crop_image(enter_image_path, shelf_count)
 
     img_tpl = cv2.imread(templ[0], cv2.IMREAD_GRAYSCALE)
+
+    res_list = []
     for img in crop_image_list:
+        shelf = int(img[len(img)-5:len(img)-4])
         img_gray = cv2.imread(img, cv2.IMREAD_GRAYSCALE)
         coord = find_templ(img_gray, img_tpl)
 
@@ -88,11 +93,14 @@ def main():
         img_res = cv2.cvtColor(img_gray, cv2.COLOR_GRAY2BGR)
         img_res = draw_frames(img_res, coord)
         tn = os.path.splitext(os.path.basename(img))[0]
-        cv2.imwrite("/Users/savchuk/Documents/template-matcher/data/result/res-{}-{}.jpg".format(tn, match_count), img_res)
+        cv2.imwrite("/Users/savchuk/Documents/template-matcher/data/result/res_{}_{}.jpg".format(tn, match_count), img_res)
         for c in coord:
             print(c)
-        print(len(coord))
+
+        res_list.append(("res_{}_{}.jpg".format(tn, match_count), shelf, (len(coord))))
         print("- - - - - - - - - - - - - - -")
+
+    print(res_list)
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
