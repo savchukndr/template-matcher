@@ -1,16 +1,3 @@
-#!python
-# -*- coding: utf-8 -*-
-__version__ = "$Revision: 1.8 $"
-# $Source: /home/mechanoid/projects/py/cv/bottle/template-matcher/RCS/main.py,v $
-#
-#       OS : GNU/Linux 4.10.3-1-ARCH
-# COMPILER : Python 3.6.0
-#
-#   AUTHOR : Evgeny S. Borisov
-#
-#    http://www.mechanoid.kiev.ua
-#  e-mail : nn@mechanoid.kiev.ua
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import sys
 import os
 import numpy as np
@@ -20,28 +7,28 @@ from scipy.ndimage import maximum_filter
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 def find_templ(img, img_tpl):
-    # размер шаблона
+    # Template shape
     h, w = img_tpl.shape
 
-    # строим карту совпадений с шаблоном
+    # Match map building
     match_map = cv2.matchTemplate(img, img_tpl, cv2.TM_CCOEFF_NORMED)
 
-    max_match_map = np.max(match_map)  # значение карты для области максимально близкой к шаблону
+    max_match_map = np.max(match_map)  # The value of the map for the region closest to the template
     print(max_match_map)
-    if (max_match_map < 0.71):  # совпадения не обнаружены
+    if (max_match_map < 0.71):  # No matches found
         return []
 
-    a = 0.7  # коэффициент "похожести", 0 - все, 1 - точное совпадение
+    a = 0.7  # Coefficient of "similarity", 0 - all, 1 - exact match
 
-    # отрезаем карту по порогу
+    # Cut the map on the threshold
     match_map = (match_map >= max_match_map * a) * match_map
 
-    # выделяем на карте локальные максимумы
+    # Select local max on the map
     match_map_max = maximum_filter(match_map, size=min(w, h))
-    # т.е. области наиболее близкие к шаблону
+    # Areas closest to the pattern
     match_map = np.where((match_map == match_map_max), match_map, 0)
 
-    # координаты локальных максимумов
+    # Coordinates of local max
     ii = np.nonzero(match_map)
     rr = tuple(zip(*ii))
 
@@ -50,8 +37,7 @@ def find_templ(img, img_tpl):
     return res
 
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# рисуем рамки найденных совпадений
+# Draw a frames of matches found
 def draw_frames(img, coord):
     res = img.copy()
     for c in coord:
@@ -61,6 +47,7 @@ def draw_frames(img, coord):
     return res
 
 
+# Crop enter image into shelfs
 def crop_image(img, n):
     crop_image_folder = "/Users/savchuk/Documents/template-matcher/data/shelf_image/"
     h, w = img.shape
@@ -77,7 +64,6 @@ def crop_image(img, n):
 
 
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 def main():
     enter_image_path = "/Users/savchuk/Documents/template-matcher/data/image/0000.jpg"
     template_image_folder = "/Users/savchuk/Documents/template-matcher/data/template/"
