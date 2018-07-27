@@ -80,25 +80,30 @@ def main():
     shelf_count = 2
     crop_image_list = crop_image(enter_image_path, shelf_count)
 
-    img_tpl = cv2.imread(templ[0], cv2.IMREAD_GRAYSCALE)
-
     res_list = []
-    for img in crop_image_list:
-        shelf = int(img[len(img)-5:len(img)-4])
-        img_gray = cv2.imread(img, cv2.IMREAD_GRAYSCALE)
-        coord = find_templ(img_gray, img_tpl)
+    for t in templ:
 
-        # Match count on the shelf
-        match_count = len(coord)
-        img_res = cv2.cvtColor(img_gray, cv2.COLOR_GRAY2BGR)
-        img_res = draw_frames(img_res, coord)
-        tn = os.path.splitext(os.path.basename(img))[0]
-        cv2.imwrite("/Users/savchuk/Documents/template-matcher/data/result/res_{}_{}.jpg".format(tn, match_count), img_res)
-        for c in coord:
-            print(c)
+        img_tpl = cv2.imread(t, cv2.IMREAD_GRAYSCALE)
 
-        res_list.append(("res_{}_{}.jpg".format(tn, match_count), shelf, (len(coord))))
-        print("- - - - - - - - - - - - - - -")
+
+        for img in crop_image_list:
+            shelf = int(img[len(img)-5:len(img)-4])
+            img_gray = cv2.imread(img, cv2.IMREAD_GRAYSCALE)
+            coord = find_templ(img_gray, img_tpl)
+
+            # Match count on the shelf
+            match_count = len(coord)
+            img_res = cv2.cvtColor(img_gray, cv2.COLOR_GRAY2BGR)
+            img_res = draw_frames(img_res, coord)
+            tn = os.path.splitext(os.path.basename(img))[0]
+            if len(coord) != 0:
+                cv2.imwrite("/Users/savchuk/Documents/template-matcher/data/result/res_{}_{}.jpg".format(tn, match_count), img_res)
+            for c in coord:
+                print(c)
+
+            if len(coord) != 0:
+                res_list.append(("res_{}_{}.jpg".format(tn, match_count), shelf, (len(coord))))
+            print("- - - - - - - - - - - - - - -")
 
     print(res_list)
 
